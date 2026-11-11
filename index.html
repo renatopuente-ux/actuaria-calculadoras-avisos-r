@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Avisos de las calculadoras</title>
+<meta name="description" content="Tutorial para el equipo de las calculadoras de R: el bloque que avisa a actuaria.com cuándo la app está lista y cuándo alguien calcula.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Nunito:wght@600;700;800&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+:root{
+  --fondo:#0b0c12;--panel:#12131a;--panel2:#171a26;--panel3:#1d2131;--linea:#272c40;
+  --texto:#d9deef;--suave:#9aa3c4;--tenue:#6b7396;
+  --indigo:#4c64d9;--indigo-claro:#9aabff;--naranja:#ffbba1;--naranja-fuerte:#df5e2d;
+  --verde:#74d68f;--verde-fondo:rgba(116,214,143,.10);--foco-fondo:rgba(76,100,217,.18);--ambar:#ffcb6b;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{background:var(--fondo)}
+body{margin:0;background:var(--fondo);color:var(--texto);font:400 15px/1.55 Prompt,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--indigo-claro)}
+code,.mono,.codigo,.consola,.bloque-codigo{font-family:var(--mono);font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+p code,li code{font-size:.86em;background:var(--panel3);border:1px solid var(--linea);border-radius:5px;padding:1px 5px;color:var(--naranja)}
+.pagina{padding:24px 16px 40px}
+.intro{max-width:1440px;margin:0 auto 18px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.intro h1{margin:0;font:800 clamp(24px,3.2vw,34px)/1.15 Nunito,sans-serif;letter-spacing:-.01em;color:#fff}
+.intro h1 em{font-style:normal;color:var(--naranja)}
+.intro p{margin:6px 0 0;color:var(--suave);max-width:760px}
+.intro .marca{display:flex;align-items:center;gap:12px;color:var(--suave);font-size:13px}
+.intro .marca svg{height:30px;width:auto}
+.intro .marca svg #wordmark,.intro .marca svg [fill="#111C4E"]{fill:#fff}
+
+/* IDE window */
+.ide{max-width:1440px;margin:0 auto;background:var(--panel);border:1px solid var(--linea);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.titulo-ide{display:flex;align-items:center;gap:14px;padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--linea)}
+.puntos{display:flex;gap:7px;flex:0 0 auto}.puntos i{width:12px;height:12px;border-radius:50%;background:#ff5f57}.puntos i:nth-child(2){background:#febc2e}.puntos i:nth-child(3){background:#28c840}
+.titulo-ide .ruta{flex:1;min-width:0;font:500 13px var(--mono);color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.titulo-ide .ruta b{color:var(--texto);font-weight:600}
+.boton{display:inline-flex;align-items:center;gap:9px;border:0;border-radius:9px;padding:9px 14px;font:600 14px Prompt,sans-serif;cursor:pointer;text-decoration:none;white-space:nowrap}
+.boton-primario{background:var(--indigo);color:#fff}
+.boton-primario:hover{background:#5b72e6}
+.boton-secundario{background:transparent;color:var(--texto);box-shadow:inset 0 0 0 1px var(--linea)}
+.boton-secundario:hover{background:var(--panel3)}
+.boton:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--indigo-claro);outline-offset:2px}
+
+.cuerpo{display:grid;grid-template-columns:48px 236px minmax(0,1fr) minmax(0,430px);grid-template-areas:"act lat edi gui" "act lat edi pre";grid-template-rows:auto 1fr}
+.actividad{grid-area:act;background:var(--panel2);border-right:1px solid var(--linea);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0}
+.actividad span{width:34px;height:34px;display:grid;place-items:center;color:var(--tenue);border-radius:8px;font-size:17px}
+.actividad span.activo{color:var(--texto);background:var(--panel3)}
+.lateral{grid-area:lat;background:var(--panel2);border-right:1px solid var(--linea);padding:12px 0;min-width:0}
+.lateral h2,.panel-titulo{margin:0;padding:4px 16px 8px;font:700 11px Nunito,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--tenue)}
+.arbol{list-style:none;margin:0 0 18px;padding:0;font:400 13px var(--mono)}
+.arbol li{display:flex;align-items:center;gap:8px;padding:4px 16px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arbol li.sangria{padding-left:34px}
+.arbol li.activo{background:var(--panel3);color:var(--texto)}
+.arbol .fa-r-project{color:#7fb2ff}.arbol .fa-file-csv{color:var(--verde)}.arbol .fa-folder-open{color:var(--ambar)}.arbol .fa-image{color:var(--naranja)}
+.arbol .marca-m{margin-left:auto;font:700 11px var(--mono);color:var(--ambar)}
+.pasos{list-style:none;margin:0;padding:0 8px;counter-reset:paso}
+.pasos button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:none;border:0;color:var(--suave);font:500 14px Prompt,sans-serif;padding:8px 10px;border-radius:8px;cursor:pointer}
+.pasos button .n{flex:0 0 22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 12px Nunito,sans-serif;background:var(--panel3);color:var(--suave)}
+.pasos button:hover{background:var(--panel3);color:var(--texto)}
+.pasos button[aria-current="step"]{background:var(--foco-fondo);color:#fff}
+.pasos button[aria-current="step"] .n{background:var(--indigo);color:#fff}
+
+.chips{grid-area:chi;display:none;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--linea);background:var(--panel2)}
+.chips button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:999px;padding:6px 12px;background:var(--panel3);color:var(--suave);font:500 13px Prompt,sans-serif;cursor:pointer}
+.chips button .n{font:700 12px Nunito,sans-serif}
+.chips button[aria-current="step"]{background:var(--indigo);color:#fff}
+
+/* editor */
+.editor{grid-area:edi;display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--linea)}
+.pestanas-editor{display:flex;background:var(--panel2);border-bottom:1px solid var(--linea);overflow:hidden}
+.pestanas-editor button{display:flex;align-items:center;gap:8px;border:0;border-right:1px solid var(--linea);background:transparent;color:var(--tenue);font:500 13px var(--mono);padding:10px 16px;cursor:pointer;white-space:nowrap}
+.pestanas-editor button[aria-selected="true"]{background:var(--panel);color:var(--texto);box-shadow:inset 0 2px var(--indigo)}
+.pestanas-editor .fa-r-project{color:#7fb2ff}
+.pestanas-editor .m{color:var(--ambar);font-weight:700}
+.codigo{flex:1;overflow:auto;max-height:900px;padding:10px 0 18px;font:400 13px/1.62 var(--mono);scroll-behavior:smooth}
+.codigo[hidden]{display:none}
+.ln{display:grid;grid-template-columns:46px 18px minmax(0,1fr);transition:opacity .25s,background .25s}
+.ln .num{color:#545c80;text-align:right;padding-right:10px;user-select:none}
+.ln .gut{color:var(--verde);user-select:none;text-align:center}
+.ln code{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;padding-right:16px;color:var(--texto)}
+.ln.add{background:var(--verde-fondo)}
+.ln.add .num{color:#6fae84}
+.codigo.enfocado .ln{opacity:.38}
+.codigo.enfocado .ln.foco{opacity:1;background:var(--foco-fondo);box-shadow:inset 3px 0 var(--indigo-claro)}
+.pliegue{display:grid;grid-template-columns:46px 18px minmax(0,1fr);color:var(--tenue);margin:4px 0}
+.pliegue .num{text-align:right;padding-right:10px;font-size:11px;align-self:center}
+.pliegue code{font:inherit;font-style:italic;background:var(--panel2);border:1px dashed var(--linea);border-radius:6px;padding:2px 10px;justify-self:start;margin-right:16px}
+.codigo.enfocado .pliegue{opacity:.38}
+.nota{display:none;margin:6px 16px 10px 64px;padding:10px 12px;gap:10px;align-items:flex-start;background:var(--panel3);border:1px solid #34406e;border-left:3px solid var(--indigo-claro);border-radius:8px;font:400 13.5px/1.5 Prompt,sans-serif;color:var(--texto)}
+.nota.ver{display:flex}
+.nota i{color:var(--indigo-claro);margin-top:3px}
+.nota b{color:#fff}
+.nota code{font-size:.9em;color:var(--naranja)}
+/* syntax */
+.t-c{color:#7d87ab;font-style:italic}.t-s{color:var(--naranja)}.t-k{color:var(--indigo-claro)}.t-f{color:#7fd3ff}.t-n{color:var(--ambar)}.t-o{color:#c8cfe8}.t-j{color:#f0a6ff}
+
+/* guide */
+.guia{grid-area:gui;padding:18px 20px 20px;border-bottom:1px solid var(--linea);min-width:0;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.guia .paso-n{font:700 12px Nunito,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--indigo-claro)}
+.guia h2{margin:4px 0 10px;font:800 22px/1.2 Nunito,sans-serif;color:#fff}
+.guia p,.guia li{color:var(--texto)}
+.guia p{margin:0 0 10px}
+.guia ul,.guia ol{margin:0 0 10px;padding-left:20px}
+.guia li{margin-bottom:6px}
+.guia .chico{font-size:13px;color:var(--suave)}
+.guia .acciones{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.guia .nav-pasos{display:flex;justify-content:space-between;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--linea)}
+.guia .nav-pasos .boton[disabled]{opacity:.35;cursor:default}
+
+/* preview */
+.vista{grid-area:pre;padding:14px 16px 18px;min-width:0}
+.vista-cab{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.segmento{display:inline-flex;background:var(--panel3);border-radius:10px;padding:3px}
+.segmento button{border:0;background:none;color:var(--suave);font:600 13px Prompt,sans-serif;padding:7px 12px;border-radius:8px;cursor:pointer}
+.segmento button[aria-pressed="true"]{background:var(--indigo);color:#fff}
+.contador{display:inline-flex;align-items:center;gap:8px;font:600 12.5px Prompt,sans-serif;color:var(--suave);background:var(--panel3);border-radius:999px;padding:6px 12px}
+.contador b{color:var(--verde);font-family:var(--mono)}
+.navegador{border-radius:10px;overflow:hidden;border:1px solid var(--linea);background:#f3f6fc}
+.barra-nav{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#e3e8f2}
+.barra-nav .url{flex:1;min-width:0;background:#fff;border-radius:999px;padding:5px 12px;font:400 12px var(--mono);color:#3b4466;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.barra-nav .url i{color:#2f8f4e;margin-right:6px}
+.web{padding:12px;color:#151f47}
+.web h3{margin:2px 0 10px;font:800 16px/1.25 Nunito,sans-serif}
+.caja-calc{position:relative;background:#fff;border-radius:8px;min-height:470px;overflow:hidden;box-shadow:0 1px 0 #dfe4ea}
+.espera-mock{position:absolute;inset:0}
+.app-mock{position:relative;padding:14px;font:400 12.5px/1.45 'Helvetica Neue',Arial,sans-serif;color:#2c3e50}
+.app-mock[hidden],.espera-mock[hidden]{display:none}
+.app-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.app-cab strong{font:500 16px/1.2 'Helvetica Neue',Arial,sans-serif;color:#2c3e50}
+.app-cab .logo-mini{font:700 10px Nunito,sans-serif;letter-spacing:.12em;color:#151f47;border:1px solid #d5dbe6;border-radius:4px;padding:4px 6px}
+.app-lado{background:#ecf0f1;border-radius:4px;padding:10px;display:grid;gap:8px;margin-bottom:12px}
+.app-lado label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.app-lado .campo{display:grid;gap:3px}
+.app-lado .campo span{font-weight:700}
+.app-lado .campo div{background:#fff;border:1px solid #dce4ec;border-radius:4px;padding:5px 8px}
+.app-lado .error-chk{font-size:12px;color:#7a4b00;background:#fff7e6;border:1px dashed #f0c27a;border-radius:4px;padding:5px 8px}
+.app-calcular{justify-self:start;background:#2c3e50;color:#fff;border:0;border-radius:4px;padding:7px 14px;font:600 12.5px 'Helvetica Neue',Arial,sans-serif;cursor:pointer}
+.app-calcular:hover{background:#1a252f}
+.app-res{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.app-res div span{display:block;font-size:11.5px;color:#5d6d7e}
+.app-res div b{font-weight:600}
+.app-res .total{grid-column:1/-1;background:#ecf0f1;border-radius:4px;text-align:center;padding:8px}
+.app-res .total b{font-size:16px}
+.app-res .err{color:#b03a2e}
+.espera-mock{background:#fff;display:grid;place-items:center;align-content:center;gap:8px;color:#555;font:300 26px/1 'Helvetica Neue',Arial,sans-serif}
+.espera-mock small{width:8px;height:12px;background:#333;animation:parpadeo 1s steps(2) infinite}
+@keyframes parpadeo{50%{opacity:.2}}
+.leyenda-vista{margin:8px 2px 0;font-size:12.5px;color:var(--suave)}
+
+/* skeleton: same CSS as the one published in actuaria.com (calculadoras/skeleton/publicado.html) */
+
+.calc-esq{position:absolute;inset:0;z-index:3;display:grid;grid-template-rows:auto 1fr;gap:18px;padding:22px 18px;background:#fff;transition:opacity .35s ease}
+.calc-esq.is-fuera{opacity:0;pointer-events:none}
+.calc-esq_cab{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.calc-esq_cuerpo{display:grid;grid-template-columns:minmax(0,31%) minmax(0,1fr);gap:28px;min-height:0}
+.calc-esq_panel{background:#eceff1;border-radius:6px;padding:20px;display:grid;align-content:start;gap:12px}
+.calc-esq_res{display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:16px 28px}
+.calc-esq b{display:block;border-radius:6px;background:#e3e8f0;background-image:linear-gradient(100deg,rgba(255,255,255,0) 20%,rgba(255,255,255,.75) 50%,rgba(255,255,255,0) 80%);background-size:220% 100%;background-repeat:no-repeat;animation:calc-esq-brillo 1.4s ease-in-out infinite}
+.calc-esq_panel b{background-color:#dde3ea}
+.calc-esq_panel b.campo{height:44px;background-color:#fff;box-shadow:inset 0 0 0 1px #dfe4ea}
+.calc-esq b.titulo{height:30px;width:44%}
+.calc-esq b.logo{height:40px;width:170px}
+.calc-esq b.etiqueta{height:13px;width:52%}
+.calc-esq b.linea{height:14px;width:62%}
+.calc-esq b.caja{height:78px;width:100%;background-color:#eceff1}
+.calc-esq b.grafico{height:190px;width:100%;background-color:#f1f4f7}
+.calc-esq b.corta{width:40%;justify-self:center}
+.calc-esq_aviso{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:12px;max-width:calc(100% - 32px);padding:14px 20px;border-radius:999px;background:rgba(255,255,255,.94);box-shadow:0 10px 30px rgba(21,31,71,.14);font:600 15px/1.35 Prompt,system-ui,sans-serif;color:#151f47}
+.calc-esq_aviso small{display:block;font-weight:400;font-size:13px;color:rgba(21,31,71,.75)}
+.calc-esq_giro{flex:0 0 22px;width:22px;height:22px;border-radius:50%;border:3px solid #dfe4ea;border-top-color:#df5e2d;animation:calc-esq-giro .8s linear infinite}
+@keyframes calc-esq-brillo{0%{background-position:120% 0}100%{background-position:-120% 0}}
+@keyframes calc-esq-giro{to{transform:rotate(360deg)}}
+@media (max-width:767px){
+  .calc-esq{padding:16px 12px}
+  .calc-esq_cuerpo{grid-template-columns:minmax(0,1fr)}
+  .calc-esq_res{grid-template-columns:minmax(0,1fr)}
+  .calc-esq b.logo{width:110px;height:30px}
+  .calc-esq b.grafico{display:none}
+  .calc-esq_aviso{top:62px;transform:translateX(-50%);width:calc(100% - 24px);border-radius:16px}
+}
+@media (prefers-reduced-motion:reduce){.calc-esq b,.calc-esq_giro{animation:none}.calc-esq{transition:none}}
+
+
+/* bottom panel */
+.abajo{border-top:1px solid var(--linea);background:var(--panel)}
+.pestanas-abajo{display:flex;flex-wrap:wrap;gap:2px;padding:0 10px;background:var(--panel2);border-bottom:1px solid var(--linea)}
+.pestanas-abajo button{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--tenue);font:600 12px Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:11px 12px;cursor:pointer}
+.pestanas-abajo button[aria-selected="true"]{color:var(--texto);box-shadow:inset 0 -2px var(--indigo-claro)}
+.panel-abajo{padding:12px 16px 18px}
+.panel-abajo[hidden]{display:none}
+.consola{list-style:none;margin:0;padding:0;max-height:230px;overflow:auto;font:400 12.5px/1.6 var(--mono)}
+.consola li{display:grid;grid-template-columns:54px 22px minmax(0,1fr);gap:4px;padding:2px 0;color:var(--texto)}
+.consola li .t{color:var(--tenue)}
+.consola li.sep{display:block;color:var(--tenue);border-top:1px dashed var(--linea);margin-top:6px;padding-top:6px}
+.consola .web i{color:var(--indigo-claro)}.consola .app i{color:#7fb2ff}.consola .aviso i{color:var(--naranja)}.consola .ga4 i,.consola .ok i{color:var(--verde)}.consola .alerta i{color:var(--ambar)}
+.consola .alerta span:last-child{color:var(--ambar)}.consola .ok span:last-child{color:var(--verde)}
+.consola .vacia{color:var(--tenue);display:block}
+.tabla-apps{width:100%;border-collapse:collapse;font-size:14px}
+.tabla-apps th{text-align:left;font:700 11px Nunito,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--tenue);padding:8px 10px;border-bottom:1px solid var(--linea)}
+.tabla-apps td{padding:8px 10px;border-bottom:1px solid var(--linea);vertical-align:top}
+.tabla-apps td code{font:500 12.5px var(--mono);color:var(--naranja)}
+.estado{display:inline-flex;align-items:center;gap:6px;font:600 12px Prompt,sans-serif;color:var(--ambar);background:rgba(255,203,107,.1);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.nota-tabla{margin:10px 0 0;font-size:13px;color:var(--suave)}
+.bloque-codigo{position:relative;background:var(--panel2);border:1px solid var(--linea);border-radius:10px;padding:14px 16px;margin:8px 0 12px;font:400 13px/1.6 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.bloque-codigo .boton{position:absolute;top:8px;right:8px;padding:6px 10px;font-size:12.5px}
+.probar-pasos{margin:0;padding-left:20px}
+.probar-pasos li{margin-bottom:8px}
+.barra-estado{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;padding:6px 14px;background:var(--indigo);color:#fff;font:500 12px var(--mono)}
+.barra-estado span{display:inline-flex;align-items:center;gap:7px}
+.pie{max-width:1440px;margin:16px auto 0;color:var(--tenue);font-size:13px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
+.aviso-copia{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;background:#fff;color:#151f47;font:600 14px Prompt,sans-serif;padding:10px 16px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:.25s;display:flex;gap:8px;align-items:center}
+.aviso-copia.ver{opacity:1;transform:translateX(-50%) translateY(0)}
+.aviso-copia i{color:#2f8f4e}
+.solo-lector{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:1199px){
+  .cuerpo{grid-template-columns:48px minmax(0,1fr) minmax(0,400px);grid-template-areas:"act chi chi" "act edi gui" "act edi pre";grid-template-rows:auto auto 1fr}
+  .lateral{display:none}
+  .chips{display:flex}
+}
+@media (max-width:899px){
+  .cuerpo{grid-template-columns:minmax(0,1fr);grid-template-areas:"chi" "gui" "edi" "pre";grid-template-rows:none}
+  .actividad{display:none}
+  .editor{border-right:0;border-bottom:1px solid var(--linea)}
+  .codigo{max-height:70vh}
+  .vista{border-top:1px solid var(--linea)}
+}
+@media (max-width:599px){
+  .pagina{padding:16px 10px 32px}
+  .titulo-ide .ruta{text-align:left}
+  .titulo-ide .boton span{display:none}
+  .codigo{font-size:12px}
+  .ln,.pliegue{grid-template-columns:34px 14px minmax(0,1fr)}
+  .ln .num,.pliegue .num{padding-right:6px}
+  .nota{margin-left:12px;margin-right:12px}
+  .guia{padding:16px 14px}
+  .tabla-apps thead{display:none}
+  .tabla-apps tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--linea)}
+  .tabla-apps td{border:0;padding:2px 4px}
+  .tabla-apps td:nth-child(1){grid-column:1}
+  .tabla-apps td:nth-child(2){grid-column:1}
+  .tabla-apps td:nth-child(3){grid-column:1;color:var(--suave);font-size:13px}
+  .tabla-apps td:nth-child(4){grid-column:2;grid-row:1}
+  .app-res{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.espera-mock small{animation:none}}
+/* code is copied by hand: no ligatures (<- must not turn into an arrow, === into a symbol). Last, because the font
+   shorthand of the code blocks resets them */
+code,.codigo,.codigo *,.consola,.consola *,.bloque-codigo,.ruta{font-variant-ligatures:none!important;font-feature-settings:"liga" 0,"calt" 0!important}
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header class="intro">
+    <div>
+      <h1>Calculadoras de R: <em>dos avisos</em> para actuaria.com</h1>
+      <p>Un bloque de 37 líneas en la ui de cada app. Con él, la web sabe cuándo la calculadora está lista y cuándo alguien calcula. Recorre los 6 pasos; la vista previa simula la página real.</p>
+    </div>
+    <div class="marca"><svg xmlns="http://www.w3.org/2000/svg" width="165" height="40" viewBox="0 5.25219 164.918 39.6005" fill="none" role="img" aria-label="Actuaria">
+<g id="wordmark" fill="#111C4E">
+<path d="M47.1299 29.8474H37.603L36.231 32.9067H32.8081L42.2719 12.3646H42.461L51.9248 32.9067H48.5019L47.1299 29.8474ZM45.9033 27.1372L42.3689 19.2685L38.8248 27.1372H45.9033Z"/>
+<path d="M51.7744 22.8562C51.7744 17.1886 56.5063 12.4276 62.1642 12.4276C64.7726 12.4664 67.1821 13.5767 69.1554 15.5014L67.3179 17.9886C65.9071 16.5777 64.0696 15.642 62.0963 15.642C58.4504 15.642 54.9645 18.837 54.9645 22.8708C54.9645 26.9045 58.4989 30.0656 62.106 30.0656C64.1665 30.0656 65.941 29.0426 67.3276 27.6657L69.1505 30.211C67.4149 31.9225 65.2041 33.2315 62.2078 33.2315C56.5014 33.2315 51.7695 28.5335 51.7695 22.8562H51.7744Z"/>
+<path d="M84.2821 15.9135H78.886V32.9067H75.7152V15.9135H70.3191V12.7767H84.2821V15.9135Z"/>
+<path d="M86.6045 25.2804V12.7767H89.7752V25.2658C89.7752 28.0487 91.7339 30.085 94.1969 30.085C96.6598 30.085 98.6427 28.0487 98.6427 25.2658V12.7767H101.828V25.2755C101.828 29.8959 98.4924 33.28 94.2114 33.28C89.9304 33.28 86.6045 29.8959 86.6045 25.2755V25.2804Z"/>
+<path d="M116.315 29.8474H106.788L105.416 32.9067H101.993L111.457 12.3646H111.646L121.11 32.9067H117.687L116.315 29.8474ZM115.088 27.1372L111.554 19.2685L108.01 27.1372H115.088Z"/>
+<path d="M134.408 32.9067L128.988 25.1155H126.515V32.9067H123.354L123.34 12.7767H129.594C133.342 12.7767 136.41 15.6614 136.41 19.2443C136.41 21.8429 134.738 24.1022 132.425 24.8489L138.282 32.9018H134.398L134.408 32.9067ZM129.676 22.4926C131.577 22.5072 133.162 20.9703 133.162 19.1716C133.162 17.3729 131.553 15.9135 129.676 15.9135H126.506V22.4926H129.676Z"/>
+<path d="M140.415 12.7767H143.576V32.9067H140.415V12.7767Z"/>
+<path d="M160.123 29.8474H150.596L149.224 32.9067H145.802L155.265 12.3646H155.454L164.918 32.9067H161.495L160.123 29.8474ZM158.897 27.1372L155.362 19.2685L151.818 27.1372H158.897Z"/>
+<path d="M164.438 12.8446C164.758 13.1645 164.918 13.5524 164.918 14.0033C164.918 14.4542 164.753 14.8614 164.429 15.1814C164.109 15.4917 163.726 15.642 163.28 15.642C162.834 15.642 162.431 15.482 162.116 15.1669C161.801 14.8517 161.641 14.4639 161.641 14.0033C161.641 13.5427 161.811 13.1258 162.155 12.8106C162.475 12.5149 162.853 12.3646 163.284 12.3646C163.716 12.3646 164.123 12.5246 164.443 12.8446H164.438ZM163.28 12.6458C162.901 12.6458 162.581 12.7815 162.315 13.053C162.053 13.3197 161.922 13.6348 161.922 14.0033C161.922 14.3718 162.053 14.7063 162.32 14.9729C162.581 15.2396 162.901 15.3705 163.275 15.3705C163.648 15.3705 163.963 15.2348 164.23 14.9681C164.492 14.7014 164.627 14.3766 164.627 14.0033C164.627 13.63 164.496 13.3197 164.235 13.053C163.968 12.7815 163.653 12.6458 163.28 12.6458ZM163.037 14.2748V14.9196H162.562V13.1015C162.674 13.1015 162.843 13.1015 163.066 13.1015C163.289 13.1015 163.415 13.1015 163.44 13.1015C163.585 13.1112 163.701 13.1452 163.798 13.1936C163.958 13.2809 164.041 13.4264 164.041 13.6251C164.041 13.7754 163.997 13.8869 163.915 13.9548C163.832 14.0227 163.726 14.0615 163.6 14.076C163.716 14.1003 163.798 14.1342 163.857 14.1827C163.963 14.27 164.017 14.4057 164.017 14.5899V14.7499C164.017 14.7499 164.017 14.7839 164.017 14.8033C164.017 14.8227 164.021 14.8372 164.031 14.8566L164.046 14.9099H163.59C163.575 14.8517 163.566 14.7693 163.561 14.6578C163.556 14.5463 163.546 14.4736 163.532 14.4348C163.507 14.3718 163.464 14.3281 163.396 14.299C163.362 14.2845 163.304 14.2748 163.236 14.27H163.129L163.027 14.2651L163.037 14.2748ZM163.221 13.9451C163.333 13.9451 163.42 13.9209 163.483 13.8772C163.546 13.8336 163.575 13.7609 163.575 13.6639C163.575 13.567 163.527 13.4942 163.43 13.4554C163.367 13.4312 163.275 13.4167 163.154 13.4167H163.037V13.9451H163.221Z"/>
+</g>
+<g id="isotipo-velero">
+<path d="M0 32.9115H10.8116V12.7961C10.8116 12.7961 8.74141 22.8514 0 32.9115Z" fill="#E0592A"/>
+<path d="M12.6929 5.25219C21.4828 8.2775 27.7807 15.9474 27.7807 25.547C27.7807 28.1263 27.3249 30.6037 26.491 32.9067H12.6977V5.25219H12.6929Z" fill="#111C4E"/>
+<path d="M5.40576 44.8527C13.5605 44.8527 21.7056 40.8093 25.5212 34.7974H5.40576V44.8527Z" fill="#385CAD"/>
+</g>
+</svg><span>Área de Diseño de Producto UX UI</span></div>
+  </header>
+
+  <div class="ide" role="application" aria-label="Tutorial con forma de editor de código">
+    <div class="titulo-ide">
+      <div class="puntos" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="ruta">CALC_DECIMOCUARTO / <b>app.R</b> — demo</div>
+      <button class="boton boton-primario" type="button" data-copiar><span>Copiar el bloque</span><i class="fa-regular fa-copy" aria-hidden="true"></i></button>
+    </div>
+
+    <div class="cuerpo">
+      <nav class="actividad" aria-hidden="true">
+        <span class="activo"><i class="fa-regular fa-copy"></i></span>
+        <span><i class="fa-solid fa-magnifying-glass"></i></span>
+        <span><i class="fa-solid fa-code-branch"></i></span>
+        <span><i class="fa-brands fa-r-project"></i></span>
+      </nav>
+
+      <aside class="lateral">
+        <h2>Explorador</h2>
+        <ul class="arbol" aria-label="Archivos de la app">
+          <li><i class="fa-solid fa-folder-open" aria-hidden="true"></i>CALC_DECIMOCUARTO</li>
+          <li class="sangria activo"><i class="fa-brands fa-r-project" aria-hidden="true"></i>app.R<span class="marca-m" title="Modificado">M</span></li>
+          <li class="sangria"><i class="fa-brands fa-r-project" aria-hidden="true"></i>funciones esteban.R</li>
+          <li class="sangria"><i class="fa-solid fa-file-csv" aria-hidden="true"></i>SBU.csv</li>
+          <li class="sangria"><i class="fa-solid fa-folder-open" aria-hidden="true"></i>www</li>
+          <li class="sangria" style="padding-left:52px"><i class="fa-solid fa-image" aria-hidden="true"></i>logo-actuaria-01.png</li>
+        </ul>
+        <h2>Tutorial</h2>
+        <ol class="pasos" data-lista-pasos></ol>
+      </aside>
+
+      <div class="chips" data-chips aria-label="Pasos del tutorial"></div>
+
+      <section class="editor" aria-label="Editor">
+        <div class="pestanas-editor" role="tablist">
+          <button role="tab" aria-selected="true" aria-controls="codigo-app" data-pestana-editor="codigo-app"><i class="fa-brands fa-r-project" aria-hidden="true"></i>app.R <span class="m">M</span></button>
+          <button role="tab" aria-selected="false" aria-controls="codigo-bloque" data-pestana-editor="codigo-bloque"><i class="fa-brands fa-r-project" aria-hidden="true"></i>bloque-avisos.R</button>
+        </div>
+        <div class="codigo" id="codigo-app" role="tabpanel" tabindex="0"><div class="ln" data-tags=""><span class="num">1</span><span class="gut"></span><code><span class="t-f">library</span>(shiny)</code></div><div class="ln" data-tags=""><span class="num">2</span><span class="gut"></span><code><span class="t-f">library</span>(shinythemes)</code></div><div class="ln" data-tags=""><span class="num">3</span><span class="gut"></span><code><span class="t-f">library</span>(lubridate)</code></div><div class="ln" data-tags=""><span class="num">4</span><span class="gut"></span><code><span class="t-f">library</span>(ggplot2)</code></div><div class="ln" data-tags=""><span class="num">5</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">6</span><span class="gut"></span><code><span class="t-f">source</span>(<span class="t-s">"funciones esteban.R"</span>)</code></div><div class="ln" data-tags=""><span class="num">7</span><span class="gut"></span><code>data<span class="t-o">&lt;-</span><span class="t-f">read.csv</span>(<span class="t-s">"SBU.csv"</span>)</code></div><div class="ln" data-tags=""><span class="num">8</span><span class="gut"></span><code><span class="t-f">options</span>(shiny.sanitize.errors = <span class="t-k">TRUE</span>)</code></div><div class="ln" data-tags=""><span class="num">9</span><span class="gut"></span><code> </code></div><div class="pliegue"><span class="num">10–41</span><span class="gut"></span><code><i class="fa-solid fa-chevron-right" aria-hidden="true"></i> función decimocuarto() · 32 líneas sin cambios</code></div><div class="ln" data-tags=""><span class="num">42</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">43</span><span class="gut"></span><code><span class="t-c"># Define UI for application that draws a histogram</span></code></div><div class="ln" data-tags="donde"><span class="num">44</span><span class="gut"></span><code>ui <span class="t-o">&lt;-</span> <span class="t-f">fluidPage</span>(</code></div><div class="nota" data-tag="donde"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>El bloque va <b>dentro de fluidPage(</b>, en la ui. Puede ir en cualquier lugar de la ui; arriba es más fácil de encontrar.</span></div><div class="ln" data-tags="donde"><span class="num">45</span><span class="gut"></span><code>  theme = <span class="t-f">shinytheme</span>(<span class="t-s">"flatly"</span>),</code></div><div class="ln add" data-tags="bloque"><span class="num">46</span><span class="gut">+</span><code> </code></div><div class="ln add" data-tags="donde bloque"><span class="num">47</span><span class="gut">+</span><code>  <span class="t-c"># ==== INICIO · Avisos para actuaria.com (pantalla de carga y medición) ==========================</span></code></div><div class="ln add" data-tags="bloque"><span class="num">48</span><span class="gut">+</span><code>  <span class="t-c"># Copiar este bloque tal cual en la ui de cada calculadora. No hay que tocar el server.</span></code></div><div class="ln add" data-tags="bloque"><span class="num">49</span><span class="gut">+</span><code>  <span class="t-c"># Le avisa a la página de actuaria.com que contiene la calculadora:</span></code></div><div class="ln add" data-tags="bloque"><span class="num">50</span><span class="gut">+</span><code>  <span class="t-c">#   'actuaria-listo'    una sola vez, cuando la app terminó de dibujarse. La web quita su pantalla de carga.</span></code></div><div class="ln add" data-tags="bloque"><span class="num">51</span><span class="gut">+</span><code>  <span class="t-c">#   'actuaria-calculo'  cada vez que la persona calcula y el resultado sale sin error. Se cuenta en GA4.</span></code></div><div class="ln add" data-tags="bloque"><span class="num">52</span><span class="gut">+</span><code>  <span class="t-c">#                       Con botón: cada clic en Calcular. Sin botón (la app recalcula sola al cambiar</span></code></div><div class="ln add" data-tags="bloque"><span class="num">53</span><span class="gut">+</span><code>  <span class="t-c">#                       un dato): una vez por cada tanda de cambios, cuando pasan 2 segundos sin cambios.</span></code></div><div class="ln add" data-tags="bloque"><span class="num">54</span><span class="gut">+</span><code>  <span class="t-c"># No envía ningún dato del usuario (ni sueldos, ni fechas, ni montos). Si la app se abre sola, fuera de</span></code></div><div class="ln add" data-tags="bloque"><span class="num">55</span><span class="gut">+</span><code>  <span class="t-c"># la web, no hace nada. Sirve con submitButton, con actionButton y con apps sin botón. Si la app tiene</span></code></div><div class="ln add" data-tags="bloque"><span class="num">56</span><span class="gut">+</span><code>  <span class="t-c"># botones que no calculan (por ejemplo «Limpiar»), cambiar el selector por el del botón que calcula,</span></code></div><div class="ln add" data-tags="bloque"><span class="num">57</span><span class="gut">+</span><code>  <span class="t-c"># por ejemplo '#calcular'. Termina con coma porque va antes de otros elementos de la ui; si quedara</span></code></div><div class="ln add" data-tags="bloque"><span class="num">58</span><span class="gut">+</span><code>  <span class="t-c"># de último dentro de fluidPage(), quitarle esa coma.</span></code></div><div class="ln add" data-tags="bloque"><span class="num">59</span><span class="gut">+</span><code>  <span class="t-f">tags$script</span>(<span class="t-f">HTML</span>(<span class="t-s">"</span></code></div><div class="nota" data-tag="bloque"><i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i><span>Un solo <b>tags$script</b>, sin paquetes nuevos: usa jQuery, que ya viene con Shiny.</span></div><div class="ln add" data-tags="bloque"><span class="num">60</span><span class="gut">+</span><code>    (<span class="t-k">function</span> () {</code></div><div class="ln add" data-tags="bloque"><span class="num">61</span><span class="gut">+</span><code>      <span class="t-k">if</span> (<span class="t-j">window</span>.parent === <span class="t-j">window</span>) <span class="t-k">return</span>;</code></div><div class="nota" data-tag="bloque"><i class="fa-solid fa-door-closed" aria-hidden="true"></i><span>Si la app se abre sola, fuera de actuaria.com, <b>no hace nada</b>.</span></div><div class="ln add" data-tags="bloque"><span class="num">62</span><span class="gut">+</span><code>      <span class="t-k">function</span> <span class="t-f">notify</span>(kind) { <span class="t-j">window</span>.parent.<span class="t-f">postMessage</span>({ tipo: kind }, <span class="t-s">'*'</span>); }</code></div><div class="nota" data-tag="bloque"><i class="fa-solid fa-user-shield" aria-hidden="true"></i><span>Solo viaja <b>{ tipo: … }</b>: ningún dato de la persona.</span></div><div class="ln add" data-tags="calculo bloque"><span class="num">63</span><span class="gut">+</span><code>      <span class="t-k">var</span> ready = <span class="t-k">false</span>, acted = <span class="t-k">false</span>, clicked = <span class="t-k">false</span>, updated = <span class="t-k">false</span>, failed = <span class="t-k">false</span>, touched = <span class="t-n">0</span>, timer = <span class="t-k">null</span>;</code></div><div class="ln add" data-tags="calculo bloque"><span class="num">64</span><span class="gut">+</span><code>      <span class="t-j">document</span>.<span class="t-f">addEventListener</span>(<span class="t-s">'pointerdown'</span>, <span class="t-k">function</span> () { touched = <span class="t-j">Date</span>.<span class="t-f">now</span>(); }, <span class="t-k">true</span>);</code></div><div class="ln add" data-tags="calculo bloque"><span class="num">65</span><span class="gut">+</span><code>      <span class="t-j">document</span>.<span class="t-f">addEventListener</span>(<span class="t-s">'keydown'</span>, <span class="t-k">function</span> () { touched = <span class="t-j">Date</span>.<span class="t-f">now</span>(); }, <span class="t-k">true</span>);</code></div><div class="ln add" data-tags="calculo bloque"><span class="num">66</span><span class="gut">+</span><code>      <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'click'</span>, <span class="t-s">'button[type=submit], .action-button'</span>, <span class="t-k">function</span> () { acted = <span class="t-k">true</span>; clicked = <span class="t-k">true</span>; });</code></div><div class="nota" data-tag="calculo"><i class="fa-solid fa-hand-pointer" aria-hidden="true"></i><span>Reconoce el botón: <b>submitButton</b> o <b>actionButton</b>. Si una app tuviera botones que no calculan, se cambia por el id del que calcula, por ejemplo <code>'#calcular'</code>.</span></div><div class="ln add" data-tags="calculo bloque"><span class="num">67</span><span class="gut">+</span><code>      <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:inputchanged'</span>, <span class="t-k">function</span> (e) {</code></div><div class="nota" data-tag="calculo"><i class="fa-solid fa-keyboard" aria-hidden="true"></i><span>Apps sin botón: cuenta los cambios que hace la persona (teclado, mouse o toque), no los ajustes internos de Shiny.</span></div><div class="ln add" data-tags="calculo bloque"><span class="num">68</span><span class="gut">+</span><code>        <span class="t-k">if</span> (ready &amp;&amp; e.name &amp;&amp; e.name.<span class="t-f">charAt</span>(<span class="t-n">0</span>) !== <span class="t-s">'.'</span> &amp;&amp; <span class="t-j">Date</span>.<span class="t-f">now</span>() - touched &lt; <span class="t-n">3000</span>) acted = <span class="t-k">true</span>;</code></div><div class="ln add" data-tags="bloque"><span class="num">69</span><span class="gut">+</span><code>      });</code></div><div class="ln add" data-tags="calculo bloque"><span class="num">70</span><span class="gut">+</span><code>      <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:value'</span>, <span class="t-k">function</span> () { updated = <span class="t-k">true</span>; });</code></div><div class="ln add" data-tags="calculo bloque"><span class="num">71</span><span class="gut">+</span><code>      <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:error'</span>, <span class="t-k">function</span> () { failed = <span class="t-k">true</span>; });</code></div><div class="nota" data-tag="calculo"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span>Si el resultado sale con error (por ejemplo «Revisar fechas.»), <b>no se cuenta</b>.</span></div><div class="ln add" data-tags="listo bloque"><span class="num">72</span><span class="gut">+</span><code>      <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:busy'</span>, <span class="t-k">function</span> () { <span class="t-f">clearTimeout</span>(timer); });</code></div><div class="ln add" data-tags="listo bloque"><span class="num">73</span><span class="gut">+</span><code>      <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:idle'</span>, <span class="t-k">function</span> () {</code></div><div class="ln add" data-tags="listo bloque"><span class="num">74</span><span class="gut">+</span><code>        <span class="t-f">clearTimeout</span>(timer);</code></div><div class="ln add" data-tags="listo bloque"><span class="num">75</span><span class="gut">+</span><code>        timer = <span class="t-f">setTimeout</span>(<span class="t-k">function</span> () {</code></div><div class="ln add" data-tags="listo bloque"><span class="num">76</span><span class="gut">+</span><code>          <span class="t-k">if</span> (!ready) { ready = <span class="t-k">true</span>; <span class="t-f">notify</span>(<span class="t-s">'actuaria-listo'</span>); }</code></div><div class="nota" data-tag="listo"><i class="fa-solid fa-flag-checkered" aria-hidden="true"></i><span><b>Aviso 1 · lista:</b> una sola vez. La web quita su pantalla de carga.</span></div><div class="ln add" data-tags="calculo bloque"><span class="num">77</span><span class="gut">+</span><code>          <span class="t-k">else</span> <span class="t-k">if</span> (acted &amp;&amp; updated &amp;&amp; !failed) { <span class="t-f">notify</span>(<span class="t-s">'actuaria-calculo'</span>); }</code></div><div class="nota" data-tag="calculo"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i><span><b>Aviso 2 · cálculo:</b> llega a GA4 como <b>use_calculator</b>.</span></div><div class="ln add" data-tags="calculo bloque"><span class="num">78</span><span class="gut">+</span><code>          acted = clicked = updated = failed = <span class="t-k">false</span>;</code></div><div class="ln add" data-tags="listo bloque"><span class="num">79</span><span class="gut">+</span><code>        }, ready &amp;&amp; !clicked ? <span class="t-n">2000</span> : <span class="t-n">250</span>);</code></div><div class="nota" data-tag="listo"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i><span>Espera a que Shiny termine de dibujar: 250 ms. En apps sin botón, 2 s, para contar una tanda de cambios como un solo cálculo.</span></div><div class="ln add" data-tags="bloque"><span class="num">80</span><span class="gut">+</span><code>      });</code></div><div class="ln add" data-tags="bloque"><span class="num">81</span><span class="gut">+</span><code>    })();</code></div><div class="ln add" data-tags="bloque"><span class="num">82</span><span class="gut">+</span><code>  <span class="t-s">"</span>)),</code></div><div class="ln add" data-tags="donde bloque"><span class="num">83</span><span class="gut">+</span><code>  <span class="t-c"># ==== FIN · Avisos para actuaria.com =============================================================</span></code></div><div class="nota" data-tag="donde"><i class="fa-solid fa-check" aria-hidden="true"></i><span>Hasta aquí. <b>El server no cambia.</b></span></div><div class="ln add" data-tags="bloque"><span class="num">84</span><span class="gut">+</span><code> </code></div><div class="ln" data-tags=""><span class="num">85</span><span class="gut"></span><code>  <span class="t-c"># Application title</span></code></div><div class="ln" data-tags=""><span class="num">86</span><span class="gut"></span><code>  <span class="t-f">tags$img</span>(src = <span class="t-s">'logo-actuaria-01.png'</span>, align = <span class="t-s">'right'</span>, height=<span class="t-n">45</span>, width=<span class="t-n">180</span>),</code></div><div class="ln" data-tags=""><span class="num">87</span><span class="gut"></span><code>  <span class="t-f">titlePanel</span>(<span class="t-s">"Calculadora Décima Cuarta Remuneración"</span>),</code></div><div class="ln" data-tags=""><span class="num">88</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">89</span><span class="gut"></span><code>  <span class="t-c"># Sidebar with a slider input for number of bins</span></code></div><div class="ln" data-tags=""><span class="num">90</span><span class="gut"></span><code>  <span class="t-f">sidebarLayout</span>(</code></div><div class="ln" data-tags=""><span class="num">91</span><span class="gut"></span><code>    <span class="t-f">sidebarPanel</span>(</code></div><div class="ln" data-tags=""><span class="num">92</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">93</span><span class="gut"></span><code>      <span class="t-f">radioButtons</span>(<span class="t-s">"region"</span>, <span class="t-s">"Región"</span>, <span class="t-f">c</span>(<span class="t-s">"Costa o Insular"</span>,<span class="t-s">"Sierra u Oriente"</span>)),</code></div><div class="ln" data-tags=""><span class="num">94</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">95</span><span class="gut"></span><code>      <span class="t-f">dateInput</span>(<span class="t-s">"fing"</span>,</code></div><div class="ln" data-tags=""><span class="num">96</span><span class="gut"></span><code>                <span class="t-s">"Fecha de ingreso"</span>,</code></div><div class="ln" data-tags=""><span class="num">97</span><span class="gut"></span><code>                value = <span class="t-s">"2000-01-01"</span>,</code></div><div class="ln" data-tags=""><span class="num">98</span><span class="gut"></span><code>                language = <span class="t-s">"ES"</span>),</code></div><div class="ln" data-tags=""><span class="num">99</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">100</span><span class="gut"></span><code>      <span class="t-f">dateInput</span>(<span class="t-s">"ffin"</span>,</code></div><div class="ln" data-tags=""><span class="num">101</span><span class="gut"></span><code>                <span class="t-s">"Fecha de cálculo*"</span>,</code></div><div class="ln" data-tags=""><span class="num">102</span><span class="gut"></span><code>                value = <span class="t-f">today</span>(),</code></div><div class="ln" data-tags=""><span class="num">103</span><span class="gut"></span><code>                language = <span class="t-s">"ES"</span>),</code></div><div class="ln" data-tags=""><span class="num">104</span><span class="gut"></span><code>      <span class="t-f">h6</span>(<span class="t-s">"*Para la región Costa o Insular el fin del periodo es el último día del mes de febrero. Para la región Sierra y Oriente el fin del periodo es el último día del mes de julio."</span>),</code></div><div class="ln" data-tags=""><span class="num">105</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">106</span><span class="gut"></span><code> </code></div><div class="ln" data-tags="calculo"><span class="num">107</span><span class="gut"></span><code>      <span class="t-f">submitButton</span>(<span class="t-s">"Calcular"</span>)</code></div><div class="nota" data-tag="calculo"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Esta app usa <b>submitButton</b>: el bloque lo reconoce solo.</span></div><div class="ln" data-tags=""><span class="num">108</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">109</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">110</span><span class="gut"></span><code>    ),</code></div><div class="ln" data-tags=""><span class="num">111</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">112</span><span class="gut"></span><code>    <span class="t-c"># Show a plot of the generated distribution</span></code></div><div class="ln" data-tags=""><span class="num">113</span><span class="gut"></span><code>    <span class="t-f">mainPanel</span>(style = <span class="t-s">"margin-top: 0px;"</span>,</code></div><div class="ln" data-tags=""><span class="num">114</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">115</span><span class="gut"></span><code>              <span class="t-f">fluidRow</span>(</code></div><div class="ln" data-tags=""><span class="num">116</span><span class="gut"></span><code>                <span class="t-f">column</span>(<span class="t-n">6</span>,align = <span class="t-s">"left"</span>,</code></div><div class="ln" data-tags=""><span class="num">117</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">118</span><span class="gut"></span><code>                       <span class="t-f">h5</span>(<span class="t-s">"Salario Básico Unificado"</span>),</code></div><div class="ln" data-tags=""><span class="num">119</span><span class="gut"></span><code>                       <span class="t-f">h5</span>(<span class="t-f">textOutput</span>(<span class="t-s">"res_T1"</span>))),</code></div><div class="ln" data-tags=""><span class="num">120</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">121</span><span class="gut"></span><code>                <span class="t-f">column</span>(<span class="t-n">6</span>,align = <span class="t-s">"left"</span>,</code></div><div class="ln" data-tags=""><span class="num">122</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">123</span><span class="gut"></span><code>                       <span class="t-f">h5</span>(<span class="t-s">"Periodo anual"</span>),</code></div><div class="ln" data-tags=""><span class="num">124</span><span class="gut"></span><code>                       <span class="t-f">h5</span>(<span class="t-f">textOutput</span>(<span class="t-s">"res_T3"</span>))),</code></div><div class="ln" data-tags=""><span class="num">125</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">126</span><span class="gut"></span><code>                <span class="t-f">column</span>(<span class="t-n">6</span>,align = <span class="t-s">"left"</span>,</code></div><div class="ln" data-tags=""><span class="num">127</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">128</span><span class="gut"></span><code>                       <span class="t-f">h5</span>(<span class="t-s">"Periodo de cálculo"</span>),</code></div><div class="ln" data-tags=""><span class="num">129</span><span class="gut"></span><code>                       <span class="t-f">h5</span>(<span class="t-f">textOutput</span>(<span class="t-s">"res_T5"</span>))),</code></div><div class="ln" data-tags=""><span class="num">130</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">131</span><span class="gut"></span><code>                <span class="t-f">column</span>(<span class="t-n">6</span>,align = <span class="t-s">"left"</span>,</code></div><div class="ln" data-tags=""><span class="num">132</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">133</span><span class="gut"></span><code>                       <span class="t-f">h5</span>(<span class="t-s">"Días laborados"</span>),</code></div><div class="ln" data-tags=""><span class="num">134</span><span class="gut"></span><code>                       <span class="t-f">h5</span>(<span class="t-f">textOutput</span>(<span class="t-s">"res_T2"</span>))),</code></div><div class="ln" data-tags=""><span class="num">135</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">136</span><span class="gut"></span><code>                <span class="t-f">column</span>(<span class="t-n">12</span>,align = <span class="t-s">"center"</span>,</code></div><div class="ln" data-tags=""><span class="num">137</span><span class="gut"></span><code>                       <span class="t-f">wellPanel</span>(</code></div><div class="ln" data-tags=""><span class="num">138</span><span class="gut"></span><code>                         <span class="t-f">h5</span>(<span class="t-s">"Décima Cuarta Remuneración"</span>),</code></div><div class="ln" data-tags=""><span class="num">139</span><span class="gut"></span><code>                         <span class="t-f">h5</span>(<span class="t-f">textOutput</span>(<span class="t-s">"res_T4"</span>)))),</code></div><div class="ln" data-tags=""><span class="num">140</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">141</span><span class="gut"></span><code>                <span class="t-f">column</span>(<span class="t-n">12</span>,align = <span class="t-s">"center"</span>,<span class="t-f">h5</span>(<span class="t-s">"Evolución del Salario Básico Unificado"</span>),<span class="t-f">plotOutput</span>(<span class="t-s">"gra"</span>,height = <span class="t-n">260</span>))</code></div><div class="ln" data-tags=""><span class="num">142</span><span class="gut"></span><code>      )</code></div><div class="ln" data-tags=""><span class="num">143</span><span class="gut"></span><code>    )</code></div><div class="ln" data-tags=""><span class="num">144</span><span class="gut"></span><code>  )</code></div><div class="ln" data-tags=""><span class="num">145</span><span class="gut"></span><code>)</code></div><div class="ln" data-tags=""><span class="num">146</span><span class="gut"></span><code> </code></div><div class="pliegue"><span class="num">147–196</span><span class="gut"></span><code><i class="fa-solid fa-chevron-right" aria-hidden="true"></i> server · 50 líneas sin cambios</code></div><div class="ln" data-tags=""><span class="num">197</span><span class="gut"></span><code> </code></div><div class="ln" data-tags=""><span class="num">198</span><span class="gut"></span><code><span class="t-c"># Run the application</span></code></div><div class="ln" data-tags=""><span class="num">199</span><span class="gut"></span><code><span class="t-f">shinyApp</span>(ui = ui, server = server)</code></div></div>
+        <div class="codigo" id="codigo-bloque" role="tabpanel" tabindex="0" hidden><div class="ln add" data-tags=""><span class="num">1</span><span class="gut">+</span><code><span class="t-c"># ==== INICIO · Avisos para actuaria.com (pantalla de carga y medición) ==========================</span></code></div><div class="ln add" data-tags=""><span class="num">2</span><span class="gut">+</span><code><span class="t-c"># Copiar este bloque tal cual en la ui de cada calculadora. No hay que tocar el server.</span></code></div><div class="ln add" data-tags=""><span class="num">3</span><span class="gut">+</span><code><span class="t-c"># Le avisa a la página de actuaria.com que contiene la calculadora:</span></code></div><div class="ln add" data-tags=""><span class="num">4</span><span class="gut">+</span><code><span class="t-c">#   'actuaria-listo'    una sola vez, cuando la app terminó de dibujarse. La web quita su pantalla de carga.</span></code></div><div class="ln add" data-tags=""><span class="num">5</span><span class="gut">+</span><code><span class="t-c">#   'actuaria-calculo'  cada vez que la persona calcula y el resultado sale sin error. Se cuenta en GA4.</span></code></div><div class="ln add" data-tags=""><span class="num">6</span><span class="gut">+</span><code><span class="t-c">#                       Con botón: cada clic en Calcular. Sin botón (la app recalcula sola al cambiar</span></code></div><div class="ln add" data-tags=""><span class="num">7</span><span class="gut">+</span><code><span class="t-c">#                       un dato): una vez por cada tanda de cambios, cuando pasan 2 segundos sin cambios.</span></code></div><div class="ln add" data-tags=""><span class="num">8</span><span class="gut">+</span><code><span class="t-c"># No envía ningún dato del usuario (ni sueldos, ni fechas, ni montos). Si la app se abre sola, fuera de</span></code></div><div class="ln add" data-tags=""><span class="num">9</span><span class="gut">+</span><code><span class="t-c"># la web, no hace nada. Sirve con submitButton, con actionButton y con apps sin botón. Si la app tiene</span></code></div><div class="ln add" data-tags=""><span class="num">10</span><span class="gut">+</span><code><span class="t-c"># botones que no calculan (por ejemplo «Limpiar»), cambiar el selector por el del botón que calcula,</span></code></div><div class="ln add" data-tags=""><span class="num">11</span><span class="gut">+</span><code><span class="t-c"># por ejemplo '#calcular'. Termina con coma porque va antes de otros elementos de la ui; si quedara</span></code></div><div class="ln add" data-tags=""><span class="num">12</span><span class="gut">+</span><code><span class="t-c"># de último dentro de fluidPage(), quitarle esa coma.</span></code></div><div class="ln add" data-tags=""><span class="num">13</span><span class="gut">+</span><code><span class="t-f">tags$script</span>(<span class="t-f">HTML</span>(<span class="t-s">"</span></code></div><div class="ln add" data-tags=""><span class="num">14</span><span class="gut">+</span><code>  (<span class="t-k">function</span> () {</code></div><div class="ln add" data-tags=""><span class="num">15</span><span class="gut">+</span><code>    <span class="t-k">if</span> (<span class="t-j">window</span>.parent === <span class="t-j">window</span>) <span class="t-k">return</span>;</code></div><div class="ln add" data-tags=""><span class="num">16</span><span class="gut">+</span><code>    <span class="t-k">function</span> <span class="t-f">notify</span>(kind) { <span class="t-j">window</span>.parent.<span class="t-f">postMessage</span>({ tipo: kind }, <span class="t-s">'*'</span>); }</code></div><div class="ln add" data-tags=""><span class="num">17</span><span class="gut">+</span><code>    <span class="t-k">var</span> ready = <span class="t-k">false</span>, acted = <span class="t-k">false</span>, clicked = <span class="t-k">false</span>, updated = <span class="t-k">false</span>, failed = <span class="t-k">false</span>, touched = <span class="t-n">0</span>, timer = <span class="t-k">null</span>;</code></div><div class="ln add" data-tags=""><span class="num">18</span><span class="gut">+</span><code>    <span class="t-j">document</span>.<span class="t-f">addEventListener</span>(<span class="t-s">'pointerdown'</span>, <span class="t-k">function</span> () { touched = <span class="t-j">Date</span>.<span class="t-f">now</span>(); }, <span class="t-k">true</span>);</code></div><div class="ln add" data-tags=""><span class="num">19</span><span class="gut">+</span><code>    <span class="t-j">document</span>.<span class="t-f">addEventListener</span>(<span class="t-s">'keydown'</span>, <span class="t-k">function</span> () { touched = <span class="t-j">Date</span>.<span class="t-f">now</span>(); }, <span class="t-k">true</span>);</code></div><div class="ln add" data-tags=""><span class="num">20</span><span class="gut">+</span><code>    <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'click'</span>, <span class="t-s">'button[type=submit], .action-button'</span>, <span class="t-k">function</span> () { acted = <span class="t-k">true</span>; clicked = <span class="t-k">true</span>; });</code></div><div class="ln add" data-tags=""><span class="num">21</span><span class="gut">+</span><code>    <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:inputchanged'</span>, <span class="t-k">function</span> (e) {</code></div><div class="ln add" data-tags=""><span class="num">22</span><span class="gut">+</span><code>      <span class="t-k">if</span> (ready &amp;&amp; e.name &amp;&amp; e.name.<span class="t-f">charAt</span>(<span class="t-n">0</span>) !== <span class="t-s">'.'</span> &amp;&amp; <span class="t-j">Date</span>.<span class="t-f">now</span>() - touched &lt; <span class="t-n">3000</span>) acted = <span class="t-k">true</span>;</code></div><div class="ln add" data-tags=""><span class="num">23</span><span class="gut">+</span><code>    });</code></div><div class="ln add" data-tags=""><span class="num">24</span><span class="gut">+</span><code>    <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:value'</span>, <span class="t-k">function</span> () { updated = <span class="t-k">true</span>; });</code></div><div class="ln add" data-tags=""><span class="num">25</span><span class="gut">+</span><code>    <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:error'</span>, <span class="t-k">function</span> () { failed = <span class="t-k">true</span>; });</code></div><div class="ln add" data-tags=""><span class="num">26</span><span class="gut">+</span><code>    <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:busy'</span>, <span class="t-k">function</span> () { <span class="t-f">clearTimeout</span>(timer); });</code></div><div class="ln add" data-tags=""><span class="num">27</span><span class="gut">+</span><code>    <span class="t-j">$</span>(<span class="t-j">document</span>).<span class="t-f">on</span>(<span class="t-s">'shiny:idle'</span>, <span class="t-k">function</span> () {</code></div><div class="ln add" data-tags=""><span class="num">28</span><span class="gut">+</span><code>      <span class="t-f">clearTimeout</span>(timer);</code></div><div class="ln add" data-tags=""><span class="num">29</span><span class="gut">+</span><code>      timer = <span class="t-f">setTimeout</span>(<span class="t-k">function</span> () {</code></div><div class="ln add" data-tags=""><span class="num">30</span><span class="gut">+</span><code>        <span class="t-k">if</span> (!ready) { ready = <span class="t-k">true</span>; <span class="t-f">notify</span>(<span class="t-s">'actuaria-listo'</span>); }</code></div><div class="ln add" data-tags=""><span class="num">31</span><span class="gut">+</span><code>        <span class="t-k">else</span> <span class="t-k">if</span> (acted &amp;&amp; updated &amp;&amp; !failed) { <span class="t-f">notify</span>(<span class="t-s">'actuaria-calculo'</span>); }</code></div><div class="ln add" data-tags=""><span class="num">32</span><span class="gut">+</span><code>        acted = clicked = updated = failed = <span class="t-k">false</span>;</code></div><div class="ln add" data-tags=""><span class="num">33</span><span class="gut">+</span><code>      }, ready &amp;&amp; !clicked ? <span class="t-n">2000</span> : <span class="t-n">250</span>);</code></div><div class="ln add" data-tags=""><span class="num">34</span><span class="gut">+</span><code>    });</code></div><div class="ln add" data-tags=""><span class="num">35</span><span class="gut">+</span><code>  })();</code></div><div class="ln add" data-tags=""><span class="num">36</span><span class="gut">+</span><code><span class="t-s">"</span>)),</code></div><div class="ln add" data-tags=""><span class="num">37</span><span class="gut">+</span><code><span class="t-c"># ==== FIN · Avisos para actuaria.com =============================================================</span></code></div></div>
+      </section>
+
+      <section class="guia" aria-live="polite" data-guia></section>
+
+      <section class="vista" aria-label="Vista previa simulada">
+        <div class="vista-cab">
+          <div class="segmento" role="group" aria-label="Comparar">
+            <button type="button" data-modo="sin" aria-pressed="false">Sin el bloque</button>
+            <button type="button" data-modo="con" aria-pressed="true">Con el bloque</button>
+          </div>
+          <button class="boton boton-secundario" type="button" data-reproducir>Reproducir la carga<i class="fa-solid fa-rotate-right" aria-hidden="true"></i></button>
+        </div>
+        <div class="navegador">
+          <div class="barra-nav"><span class="url"><i class="fa-solid fa-lock" aria-hidden="true"></i>actuaria.com/calculadoras/decimo-cuarto-sueldo</span><span class="contador" title="Eventos use_calculator que llegan a GA4">GA4 <b data-usos>0</b></span></div>
+          <div class="web">
+            <h3>Calculadora del décimo cuarto sueldo</h3>
+            <div class="caja-calc" data-caja>
+              <div class="espera-mock" data-espera hidden aria-hidden="true">Please Wait<small></small></div>
+              <div class="app-mock" data-app hidden>
+                <div class="app-cab"><strong>Calculadora Décima Cuarta Remuneración</strong><span class="logo-mini">ACTUARIA</span></div>
+                <div class="app-lado">
+                  <div class="campo"><span>Región</span>
+                    <label><input type="radio" name="region" value="costa" checked> Costa o Insular</label>
+                    <label><input type="radio" name="region" value="sierra"> Sierra u Oriente</label>
+                  </div>
+                  <div class="campo"><span>Fecha de ingreso</span><div data-ingreso>2000-01-01</div></div>
+                  <label class="error-chk"><input type="checkbox" data-error> Probar un error: ingreso después de la fecha de cálculo</label>
+                  <div class="campo"><span>Fecha de cálculo*</span><div>2026-11-11</div></div>
+                  <button class="app-calcular" type="button" data-calcular>Calcular</button>
+                </div>
+                <div class="app-res" data-res></div>
+              </div>
+              <div class="calc-esq" data-esq role="status" aria-live="polite">
+                <div class="calc-esq_cab"><b class="titulo"></b><b class="logo"></b></div>
+                <div class="calc-esq_cuerpo"><div class="calc-esq_panel"><b class="etiqueta"></b><b class="campo"></b><b class="etiqueta"></b><b class="campo"></b><b class="etiqueta"></b><b class="campo"></b><b class="etiqueta"></b><b class="campo"></b></div>
+                <div class="calc-esq_res"><b class="linea"></b><b class="linea"></b><b class="linea"></b><b class="linea"></b><b class="linea"></b><b class="linea"></b><b class="caja"></b><b class="caja"></b><b class="linea corta"></b><b class="linea corta"></b><b class="grafico"></b><b class="grafico"></b></div></div>
+                <div class="calc-esq_aviso"><span class="calc-esq_giro" aria-hidden="true"></span><span>Cargando la calculadora…<small>La primera vez puede tardar unos segundos.</small></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="leyenda-vista">Simulación con los tiempos acortados. Valores de ejemplo con fecha de cálculo 11/11/2026 (salario básico de $482).</p>
+      </section>
+    </div>
+
+    <div class="abajo">
+      <div class="pestanas-abajo" role="tablist">
+        <button role="tab" aria-selected="true" aria-controls="panel-consola" data-pestana-abajo="panel-consola"><i class="fa-solid fa-terminal" aria-hidden="true"></i>Consola</button>
+        <button role="tab" aria-selected="false" aria-controls="panel-apps" data-pestana-abajo="panel-apps"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Las 12 apps</button>
+        <button role="tab" aria-selected="false" aria-controls="panel-probar" data-pestana-abajo="panel-probar"><i class="fa-solid fa-vial" aria-hidden="true"></i>Cómo probarlo</button>
+      </div>
+      <div class="panel-abajo" id="panel-consola" role="tabpanel"><ul class="consola" data-consola aria-live="polite"><li class="vacia">Los avisos de la vista previa aparecen aquí.</li></ul></div>
+      <div class="panel-abajo" id="panel-apps" role="tabpanel" hidden>
+        <table class="tabla-apps">
+          <thead><tr><th>Carpeta en shinyapps.io</th><th>Página en actuaria.com</th><th>Botón</th><th>Estado</th></tr></thead>
+          <tbody><tr><td><code>CalcJP</code></td><td><a href="https://actuaria.com/calculadoras/jubilacion-patronal" target="_blank" rel="noopener">Jubilación patronal</a></td><td>submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_DESPIDO</code></td><td><a href="https://actuaria.com/calculadoras/despido-intempestivo" target="_blank" rel="noopener">Despido intempestivo</a></td><td>submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_DESAHUCIO</code></td><td><a href="https://actuaria.com/calculadoras/desahucio" target="_blank" rel="noopener">Desahucio</a></td><td>submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_JUB_VEJ_IESS</code></td><td><a href="https://actuaria.com/calculadoras/jubilacion-vejez-iess" target="_blank" rel="noopener">Simulador de jubilación por vejez del IESS</a></td><td>submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_INFO_IESS</code></td><td><a href="https://actuaria.com/calculadoras/fondo-pensiones-iess" target="_blank" rel="noopener">Panorama del fondo de pensiones del IESS</a></td><td>Sin botón: recalcula sola</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_APORTES</code></td><td><a href="https://actuaria.com/calculadoras/aportes-iess" target="_blank" rel="noopener">Aportes al IESS</a></td><td>Sin botón: recalcula sola</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_DECIMOTERCERO</code></td><td><a href="https://actuaria.com/calculadoras/decimo-tercer-sueldo" target="_blank" rel="noopener">Décimo tercer sueldo</a></td><td>submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_DECIMOCUARTO</code></td><td><a href="https://actuaria.com/calculadoras/decimo-cuarto-sueldo" target="_blank" rel="noopener">Décimo cuarto sueldo</a></td><td>submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_VACACIONES</code></td><td><a href="https://actuaria.com/calculadoras/vacaciones" target="_blank" rel="noopener">Vacaciones</a></td><td>submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_FOND_RESERV</code></td><td><a href="https://actuaria.com/calculadoras/fondos-de-reserva" target="_blank" rel="noopener">Fondos de reserva</a></td><td>submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_AHORRO_P</code></td><td><a href="https://actuaria.com/calculadoras/ahorro-programado" target="_blank" rel="noopener">Ahorro programado</a></td><td>Sin botón: recalcula sola</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr><tr><td><code>CALC_IR</code></td><td><a href="https://actuaria.com/calculadoras/impuesto-a-la-renta" target="_blank" rel="noopener">Impuesto a la renta</a></td><td>3 × submitButton «Calcular»</td><td><span class="estado"><i class="fa-regular fa-clock" aria-hidden="true"></i>Pendiente</span></td></tr></tbody>
+        </table>
+        <p class="nota-tabla">El mismo bloque sirve en las 12 sin cambios. CALC_IR tiene tres botones «Calcular» y los reconoce a los tres. Ninguna app tiene botones que no calculen, así que no hay que cambiar el selector.</p>
+      </div>
+      <div class="panel-abajo" id="panel-probar" role="tabpanel" hidden>
+        <ol class="probar-pasos">
+          <li>Agregar el bloque y publicar la app en shinyapps.io como siempre.</li>
+          <li>Abrir su página en actuaria.com (están en <b>Las 12 apps</b>).</li>
+          <li>Abrir la consola del navegador (F12 → Consola), pegar esto y pulsar Enter. Recarga la calculadora y muestra los avisos:
+            <div class="bloque-codigo" data-texto-prueba>addEventListener('message', (e) =&gt; { if (e.origin === 'https://actuariaconsultores.shinyapps.io') console.log('aviso:', e.data.tipo); });
+const f = document.querySelector('[data-calc-iframe]'); f.src = f.src;<button class="boton boton-secundario" type="button" data-copiar-prueba>Copiar<i class="fa-regular fa-copy" aria-hidden="true"></i></button></div>
+          </li>
+          <li>Tiene que salir <code>aviso: actuaria-listo</code> una vez y <code>aviso: actuaria-calculo</code> cada vez que calculan sin error.</li>
+          <li>Avisar a Renato qué apps ya lo tienen. Nosotros activamos la pantalla de carga para esas apps y revisamos que GA4 reciba los cálculos.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="barra-estado"><span><i class="fa-solid fa-code-branch" aria-hidden="true"></i>app.R · +37 líneas en la ui · 0 en el server</span><span>R · Shiny · UTF-8</span></div>
+  </div>
+
+  <footer class="pie">
+    <span>Probado el 11 de noviembre de 2026 con el mismo JavaScript inyectado en las apps publicadas: décimo cuarto (con botón), aportes, ahorro programado y panorama del IESS (sin botón).</span>
+    <span>Área de Diseño de Producto UX UI · Actuaria Consultores</span>
+  </footer>
+</div>
+<div class="aviso-copia" data-aviso-copia role="status" aria-live="polite"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>Copiado</span></div>
+
+<script type="application/json" id="bloque-texto">"# ==== INICIO · Avisos para actuaria.com (pantalla de carga y medición) ==========================\n# Copiar este bloque tal cual en la ui de cada calculadora. No hay que tocar el server.\n# Le avisa a la página de actuaria.com que contiene la calculadora:\n#   'actuaria-listo'    una sola vez, cuando la app terminó de dibujarse. La web quita su pantalla de carga.\n#   'actuaria-calculo'  cada vez que la persona calcula y el resultado sale sin error. Se cuenta en GA4.\n#                       Con botón: cada clic en Calcular. Sin botón (la app recalcula sola al cambiar\n#                       un dato): una vez por cada tanda de cambios, cuando pasan 2 segundos sin cambios.\n# No envía ningún dato del usuario (ni sueldos, ni fechas, ni montos). Si la app se abre sola, fuera de\n# la web, no hace nada. Sirve con submitButton, con actionButton y con apps sin botón. Si la app tiene\n# botones que no calculan (por ejemplo «Limpiar»), cambiar el selector por el del botón que calcula,\n# por ejemplo '#calcular'. Termina con coma porque va antes de otros elementos de la ui; si quedara\n# de último dentro de fluidPage(), quitarle esa coma.\ntags$script(HTML(\"\n  (function () {\n    if (window.parent === window) return;\n    function notify(kind) { window.parent.postMessage({ tipo: kind }, '*'); }\n    var ready = false, acted = false, clicked = false, updated = false, failed = false, touched = 0, timer = null;\n    document.addEventListener('pointerdown', function () { touched = Date.now(); }, true);\n    document.addEventListener('keydown', function () { touched = Date.now(); }, true);\n    $(document).on('click', 'button[type=submit], .action-button', function () { acted = true; clicked = true; });\n    $(document).on('shiny:inputchanged', function (e) {\n      if (ready && e.name && e.name.charAt(0) !== '.' && Date.now() - touched \u003c 3000) acted = true;\n    });\n    $(document).on('shiny:value', function () { updated = true; });\n    $(document).on('shiny:error', function () { failed = true; });\n    $(document).on('shiny:busy', function () { clearTimeout(timer); });\n    $(document).on('shiny:idle', function () {\n      clearTimeout(timer);\n      timer = setTimeout(function () {\n        if (!ready) { ready = true; notify('actuaria-listo'); }\n        else if (acted && updated && !failed) { notify('actuaria-calculo'); }\n        acted = clicked = updated = failed = false;\n      }, ready && !clicked ? 2000 : 250);\n    });\n  })();\n\")),\n# ==== FIN · Avisos para actuaria.com =============================================================\n"</script>
+<script>
+(function () {
+  var PASOS = [
+    { id: 'por-que', corto: 'Por qué', titulo: 'La web no ve dentro de la calculadora', foco: null, modo: 'sin', reproducir: true, abajo: 'panel-consola',
+      html: '<p>Las calculadoras viven en <b>shinyapps.io</b> y actuaria.com las muestra dentro de un <b>iframe</b>. Como son dominios distintos, la web no puede mirar adentro: no sabe cuándo la calculadora terminó de cargar ni cuándo alguien calculó.</p>' +
+        '<ul><li><b>Pantalla de carga.</b> La web la quita cuando el iframe termina de cargar. En 4 de las 12 apps, shinyapps.io carga primero su página «Please Wait» y el formulario llega 4 a 9 segundos después: la persona ve esa espera en inglés.</li>' +
+        '<li><b>Medición.</b> GA4 tiene listo el evento <b>use_calculator</b> desde el 30 de octubre, pero no recibe ningún cálculo porque nadie se lo avisa.</li></ul>' +
+        '<p>La solución es que cada app avise. Compara en la vista previa <b>Sin el bloque</b> y <b>Con el bloque</b>.</p>' },
+    { id: 'donde', corto: 'Dónde', titulo: 'Dónde va: en la ui, dentro de fluidPage', foco: 'donde', abajo: 'panel-consola',
+      html: '<p>Se agrega <b>un solo bloque</b> en <code>app.R</code>, dentro de <code>fluidPage(</code>, en la ui. Puede ir en cualquier lugar de la ui; arriba, después de <code>theme</code>, es más fácil de encontrar.</p>' +
+        '<ul><li>No se toca el <b>server</b>.</li><li>No hay que instalar paquetes: usa jQuery, que ya viene con Shiny.</li><li>Las líneas en verde (+) son todo el cambio: 37 líneas.</li></ul>' },
+    { id: 'bloque', corto: 'Bloque', titulo: 'El bloque: igual en las 12 apps', foco: 'bloque', abajo: 'panel-consola',
+      html: '<p>Cópialo tal cual. Es el mismo en todas las calculadoras.</p>' +
+        '<div class="acciones"><button class="boton boton-primario" type="button" data-copiar>Copiar el bloque<i class="fa-regular fa-copy" aria-hidden="true"></i></button><a class="boton boton-secundario" href="bloque-avisos.R" download>Descargar bloque-avisos.R<i class="fa-solid fa-download" aria-hidden="true"></i></a></div>' +
+        '<ul><li>Si la app ya tiene otro <code>tags$script</code>, no importa: este va aparte.</li><li>No envía ningún dato de la persona: ni sueldos, ni fechas, ni montos. Solo «lista» o «cálculo».</li><li>Si la app se abre sola, fuera de actuaria.com, no hace nada.</li></ul>' },
+    { id: 'lista', corto: 'Lista', titulo: 'Aviso 1 · «lista»', foco: 'listo', modo: 'con', reproducir: true, abajo: 'panel-consola',
+      html: '<p>Cuando Shiny termina de dibujar la app por primera vez, el bloque manda <code>actuaria-listo</code>, una sola vez. Con ese aviso, la web quita su pantalla de carga en el momento justo, también cuando shinyapps.io muestra antes su «Please Wait».</p>' +
+        '<p>Pulsa <b>Reproducir la carga</b> con y sin el bloque y mira la consola.</p>' +
+        '<p class="chico">Detalle técnico: Shiny dispara <code>shiny:idle</code> un instante antes de aplicar los resultados. Por eso el bloque espera 250 ms antes de avisar.</p>' },
+    { id: 'calculo', corto: 'Cálculo', titulo: 'Aviso 2 · «cálculo»', foco: 'calculo', modo: 'con', abajo: 'panel-consola',
+      html: '<p>Cada vez que la persona calcula y el resultado sale sin error, el bloque manda <code>actuaria-calculo</code>. La web lo convierte en el evento <b>use_calculator</b> de GA4.</p>' +
+        '<ul><li><b>Con botón</b> (<code>submitButton</code> o <code>actionButton</code>): cuenta cada clic en Calcular.</li>' +
+        '<li><b>Sin botón</b> (la app recalcula sola al cambiar un dato): cuenta una vez por tanda de cambios, cuando pasan 2 segundos sin cambios. Solo cuenta lo que cambia la persona, no los ajustes internos de Shiny.</li>' +
+        '<li><b>Con error</b> (por ejemplo «Revisar fechas.»): no cuenta.</li></ul>' +
+        '<p>Pruébalo en la vista previa: cambia la región y pulsa <b>Calcular</b>; después marca el error de fechas.</p>' },
+    { id: 'probar', corto: 'Probar', titulo: 'Probar y avisarnos', foco: null, abajo: 'panel-probar',
+      html: '<ol><li>Agregar el bloque y publicar la app en shinyapps.io.</li><li>Abrir su página en actuaria.com.</li><li>Pegar en la consola del navegador el código de <b>Cómo probarlo</b> (abajo).</li><li>Ver <code>actuaria-listo</code> una vez y <code>actuaria-calculo</code> en cada cálculo sin error.</li><li>Avisar a Renato qué apps ya lo tienen: nosotros activamos la pantalla de carga y revisamos GA4.</li></ol>' +
+        '<p class="chico">La lista de las 12 apps, con su botón, está en la pestaña <b>Las 12 apps</b>.</p>' }
+  ];
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var bloque = JSON.parse($('#bloque-texto').textContent);
+  var actual = 0;
+
+  /* copy */
+  var aviso = $('[data-aviso-copia]'), avisoT = null;
+  function copiar(texto, etiqueta) {
+    var listo = function () { $('span', aviso).textContent = etiqueta; aviso.classList.add('ver'); clearTimeout(avisoT); avisoT = setTimeout(function () { aviso.classList.remove('ver'); }, 1800); };
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(texto).then(listo, function () { respaldo(texto); listo(); }); } else { respaldo(texto); listo(); }
+  }
+  function respaldo(texto) { var t = document.createElement('textarea'); t.value = texto; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(t); }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-copiar]')) copiar(bloque, 'Bloque copiado');
+    if (e.target.closest('[data-copiar-prueba]')) copiar($('[data-texto-prueba]').firstChild.textContent, 'Código de prueba copiado');
+  });
+
+  /* editor tabs and bottom tabs */
+  function pestanas(sel, attr) {
+    $$(sel).forEach(function (b) {
+      b.addEventListener('click', function () { activarPestana(sel, attr, b.getAttribute(attr)); });
+    });
+  }
+  function activarPestana(sel, attr, id) {
+    $$(sel).forEach(function (b) { var si = b.getAttribute(attr) === id; b.setAttribute('aria-selected', si); var p = document.getElementById(b.getAttribute(attr)); if (p) p.hidden = !si; });
+  }
+  pestanas('[data-pestana-editor]', 'data-pestana-editor');
+  pestanas('[data-pestana-abajo]', 'data-pestana-abajo');
+
+  /* steps */
+  var lista = $('[data-lista-pasos]'), chips = $('[data-chips]'), guia = $('[data-guia]');
+  PASOS.forEach(function (p, i) {
+    var li = document.createElement('li');
+    li.innerHTML = '<button type="button" data-paso="' + i + '"><span class="n">' + (i + 1) + '</span>' + p.titulo.replace(/<[^>]+>/g, '') + '</button>';
+    lista.appendChild(li);
+    var c = document.createElement('button');
+    c.type = 'button'; c.setAttribute('data-paso', i);
+    c.innerHTML = '<span class="n">' + (i + 1) + '</span>' + p.corto;
+    chips.appendChild(c);
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-paso]'); if (b) activar(+b.getAttribute('data-paso'), true);
+    var n = e.target.closest('[data-ir]'); if (n) activar(actual + +n.getAttribute('data-ir'), true);
+  });
+  function activar(i, desdeClic) {
+    if (i < 0 || i >= PASOS.length) return;
+    actual = i;
+    var p = PASOS[i];
+    $$('[data-paso]').forEach(function (b) { if (+b.getAttribute('data-paso') === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    guia.innerHTML = '<div class="paso-n">Paso ' + (i + 1) + ' de ' + PASOS.length + '</div><h2>' + p.titulo + '</h2>' + p.html +
+      '<div class="nav-pasos"><button class="boton boton-secundario" type="button" data-ir="-1"' + (i === 0 ? ' disabled' : '') + '>Anterior<i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>' +
+      '<button class="boton boton-primario" type="button" data-ir="1"' + (i === PASOS.length - 1 ? ' disabled' : '') + '>Siguiente<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>';
+    activarPestana('[data-pestana-editor]', 'data-pestana-editor', 'codigo-app');
+    var cod = $('#codigo-app');
+    cod.classList.toggle('enfocado', !!p.foco);
+    $$('.ln', cod).forEach(function (l) { l.classList.toggle('foco', !!p.foco && (' ' + l.getAttribute('data-tags') + ' ').indexOf(' ' + p.foco + ' ') >= 0); });
+    $$('.nota', cod).forEach(function (n) { n.classList.toggle('ver', !!p.foco && n.getAttribute('data-tag') === p.foco); });
+    var primera = $('.ln.foco', cod);
+    if (primera) cod.scrollTop = Math.max(0, primera.offsetTop - cod.offsetTop - 60); else cod.scrollTop = 0;
+    activarPestana('[data-pestana-abajo]', 'data-pestana-abajo', p.abajo);
+    if (p.modo) ponerModo(p.modo, !!p.reproducir);
+    if (desdeClic) { try { history.replaceState(null, '', '#' + p.id); } catch (e) {} }
+  }
+
+  /* simulated preview */
+  var esq = $('[data-esq]'), espera = $('[data-espera]'), app = $('[data-app]'), res = $('[data-res]'), consola = $('[data-consola]'), usosEl = $('[data-usos]');
+  var modo = 'con', usos = 0, timers = [], t0 = 0, fase = 'app';
+  function log(tipo, texto) {
+    var v = $('.vacia', consola); if (v) v.remove();
+    var iconos = { web: 'fa-globe', app: 'fa-brands fa-r-project', aviso: 'fa-paper-plane', ga4: 'fa-chart-simple', alerta: 'fa-triangle-exclamation', ok: 'fa-circle-check' };
+    var li = document.createElement('li'); li.className = tipo;
+    var t = ((performance.now() - t0) / 1000).toFixed(1) + ' s';
+    var ic = iconos[tipo].indexOf('fa-brands') === 0 ? iconos[tipo] : 'fa-solid ' + iconos[tipo];
+    li.innerHTML = '<span class="t">' + t + '</span><i class="' + ic + '" aria-hidden="true"></i><span></span>';
+    li.lastChild.textContent = texto;
+    consola.appendChild(li); consola.scrollTop = consola.scrollHeight;
+  }
+  function separador(texto) { var v = $('.vacia', consola); if (v) v.remove(); var li = document.createElement('li'); li.className = 'sep'; li.textContent = texto; consola.appendChild(li); consola.scrollTop = consola.scrollHeight; }
+  function despues(ms, fn) { timers.push(setTimeout(fn, ms)); }
+  function mostrarEsq(si) { esq.classList.toggle('is-fuera', !si); esq.setAttribute('aria-hidden', si ? 'false' : 'true'); }
+  function pintarResultado() {
+    var sierra = $('input[name=region][value=sierra]').checked, error = $('[data-error]').checked;
+    $('[data-ingreso]').textContent = error ? '2030-01-01' : '2000-01-01';
+    if (error) { res.innerHTML = '<div><span>Salario Básico Unificado</span><b class="err">Revisar fechas.</b></div><div><span>Periodo anual</span><b class="err">Revisar fechas.</b></div><div><span>Periodo de cálculo</span><b class="err">Revisar fechas.</b></div><div><span>Días laborados</span><b class="err">Revisar fechas.</b></div><div class="total"><span>Décima Cuarta Remuneración</span><b class="err">Revisar fechas.</b></div>'; return; }
+    res.innerHTML = '<div><span>Salario Básico Unificado</span><b>$482</b></div><div><span>Periodo anual</span><b>360 días</b></div>' +
+      '<div><span>Periodo de cálculo</span><b>' + (sierra ? '2026-08-01' : '2026-03-01') + '  al  2026-11-11</b></div><div><span>Días laborados</span><b>' + (sierra ? '100' : '250') + ' días</b></div>' +
+      '<div class="total"><span>Décima Cuarta Remuneración</span><b>' + (sierra ? '$133.89' : '$334.72') + '</b></div>';
+  }
+  function ponerModo(m, reproducir) {
+    modo = m;
+    $$('[data-modo]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-modo') === m); });
+    if (reproducir) cargar(); else separador('— ' + (m === 'con' ? 'Con el bloque' : 'Sin el bloque') + ' —');
+  }
+  function cargar() {
+    timers.forEach(clearTimeout); timers = []; t0 = performance.now(); fase = 'cargando';
+    $('[data-error]').checked = false; $('input[name=region][value=costa]').checked = true; pintarResultado();
+    separador('— Carga nueva · ' + (modo === 'con' ? 'con el bloque' : 'sin el bloque') + ' —');
+    app.hidden = true; espera.hidden = true; mostrarEsq(true);
+    log('web', 'La página muestra su pantalla de carga y pide la calculadora a shinyapps.io');
+    despues(1000, function () {
+      espera.hidden = false;
+      log('web', 'load del iframe: shinyapps.io respondió con su página «Please Wait»');
+      if (modo === 'sin') { mostrarEsq(false); log('alerta', 'La web quita su pantalla de carga demasiado pronto: se ve «Please Wait»'); }
+      else log('web', 'La web sigue mostrando su pantalla de carga: espera el aviso «lista»');
+    });
+    despues(3600, function () { espera.hidden = true; app.hidden = false; fase = 'app'; log('app', 'Shiny terminó de dibujar la app'); });
+    despues(3850, function () {
+      if (modo === 'con') { log('aviso', "postMessage → { tipo: 'actuaria-listo' }"); mostrarEsq(false); log('ok', 'La web quita su pantalla de carga justo a tiempo'); }
+    });
+  }
+  function calcular() {
+    if (fase !== 'app') return;
+    var error = $('[data-error]').checked;
+    pintarResultado();
+    log('app', 'Clic en Calcular' + (error ? ' (con error de fechas)' : ''));
+    if (modo === 'sin') { log('alerta', 'La web no se entera: GA4 no recibe nada'); return; }
+    if (error) { log('app', 'Shiny: error en el resultado («Revisar fechas.»)'); log('web', 'No sale ningún aviso: un cálculo con error no cuenta'); return; }
+    despues(250, function () {
+      log('aviso', "postMessage → { tipo: 'actuaria-calculo' }");
+      log('web', "dataLayer.push({ event: 'use_calculator', calculator_name: 'decimo-cuarto-sueldo', idioma: 'es' })");
+      usos++; usosEl.textContent = usos;
+      log('ga4', 'GA4 · use_calculator +1 (van ' + usos + ')');
+    });
+  }
+  $$('[data-modo]').forEach(function (b) { b.addEventListener('click', function () { ponerModo(b.getAttribute('data-modo'), true); }); });
+  $('[data-reproducir]').addEventListener('click', cargar);
+  $('[data-calcular]').addEventListener('click', calcular);
+  $$('input[name=region]').forEach(function (r) { r.addEventListener('change', function () { log('app', 'La persona cambia la región: con submitButton, Shiny espera al clic en Calcular'); }); });
+  $('[data-error]').addEventListener('change', function () { $('[data-ingreso]').textContent = this.checked ? '2030-01-01' : '2000-01-01'; });
+
+  var inicio = 0, h = (location.hash || '').slice(1);
+  PASOS.forEach(function (p, i) { if (p.id === h) inicio = i; });
+  activar(inicio, false);
+})();
+</script>
+</body>
+</html>
